@@ -11,7 +11,7 @@ namespace BackJob.Worker.Workers;
 
 
 [DisallowConcurrentExecution]
-public class DemoJob : IJob , ITransientDependency
+public class DemoJob : IJob , IScopedDependency
 {
     private readonly ILogger<DemoJob> _logger;
     private readonly IRepository<Product, int> _repository;
@@ -27,18 +27,18 @@ public class DemoJob : IJob , ITransientDependency
     }
 
     #region this unitofwork attribute is not working
-    ///// <inheritdoc />
-    //[UnitOfWork]
-    //public  async Task Execute(IJobExecutionContext context)
-    //{
-    //    ValueContext.CurrentId.Value = "1";
+    /// <inheritdoc />
+    [UnitOfWork]
+    public async Task Execute(IJobExecutionContext context)
+    {
+        ValueContext.CurrentId.Value = "1";
 
-    //    var query = await _repository.GetQueryableAsync();
+        var query = await _repository.GetQueryableAsync(); // abp repository. Based on the abp documentation, each method in the repository is considered as a uow. I don't understand why it is designed this way.
 
-    //    var list = await query.Where(x => x.Id > 0).ToListAsync(); // this will throw exception dbcontext disposed
+        var list = await query.Where(x => x.Id > 0).ToListAsync(); // this will throw exception dbcontext disposed
 
-    //    _logger.LogInformation("DemoJob is running. data is {@list}", list);
-    //}
+        _logger.LogInformation("DemoJob is running. data is {@list}", list);
+    }
     #endregion
 
 
@@ -60,22 +60,22 @@ public class DemoJob : IJob , ITransientDependency
     //}
 
     #endregion
-    
+
 
     #region this is working using dbcontext
 
-    /// <inheritdoc />
-    public  async Task Execute(IJobExecutionContext context)
-    {
-        using (_uoOfWorkManager.Begin(requiresNew:true)) // this will work
-        {
-            ValueContext.CurrentId.Value = "1";
+    ///// <inheritdoc />
+    //public  async Task Execute(IJobExecutionContext context)
+    //{
+    //    using (_uoOfWorkManager.Begin(requiresNew:true)) // this will work
+    //    {
+    //        ValueContext.CurrentId.Value = "1";
 
-            var list = await _dbContext.Product.Where(x => x.Id > 0).ToListAsync(); // worked
+    //        var list = await _dbContext.Product.Where(x => x.Id > 0).ToListAsync(); // worked
 
-            _logger.LogInformation("DemoJob is running. data is {@list}", list);
-        }
-    }
+    //        _logger.LogInformation("DemoJob is running. data is {@list}", list);
+    //    }
+    //}
 
     #endregion
 }
