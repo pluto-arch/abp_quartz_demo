@@ -15,12 +15,14 @@ public class DemoJob : IJob , ITransientDependency
 {
     private readonly ILogger<DemoJob> _logger;
     private readonly IRepository<Product, int> _repository;
+    private readonly BackJobDbContext _dbContext;
     private readonly IUnitOfWorkManager _uoOfWorkManager;
 
-    public DemoJob(ILogger<DemoJob> logger, IRepository<Product, int> repository,IUnitOfWorkManager uoOfWorkManager)
+    public DemoJob(ILogger<DemoJob> logger, IRepository<Product, int> repository,BackJobDbContext dbContext,IUnitOfWorkManager uoOfWorkManager)
     {
         _logger = logger;
         _repository = repository;
+        _dbContext = dbContext;
         _uoOfWorkManager = uoOfWorkManager;
     }
 
@@ -40,7 +42,27 @@ public class DemoJob : IJob , ITransientDependency
     #endregion
 
 
-    #region this is working
+    #region this is working using  uoOfWorkManager.Begin
+
+    ///// <inheritdoc />
+    //public  async Task Execute(IJobExecutionContext context)
+    //{
+    //    using (_uoOfWorkManager.Begin(requiresNew:true)) // this will work
+    //    {
+    //        ValueContext.CurrentId.Value = "1";
+
+    //        var query = await _repository.GetQueryableAsync();
+
+    //        var list = await query.Where(x => x.Id > 0).ToListAsync(); // worked
+
+    //        _logger.LogInformation("DemoJob is running. data is {@list}", list);
+    //    }
+    //}
+
+    #endregion
+    
+
+    #region this is working using dbcontext
 
     /// <inheritdoc />
     public  async Task Execute(IJobExecutionContext context)
@@ -49,14 +71,11 @@ public class DemoJob : IJob , ITransientDependency
         {
             ValueContext.CurrentId.Value = "1";
 
-            var query = await _repository.GetQueryableAsync();
-
-            var list = await query.Where(x => x.Id > 0).ToListAsync(); // 
+            var list = await _dbContext.Product.Where(x => x.Id > 0).ToListAsync(); // worked
 
             _logger.LogInformation("DemoJob is running. data is {@list}", list);
         }
     }
 
     #endregion
-    
 }
