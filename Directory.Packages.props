@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="5.0.1" />
+    <PackageVersion Include="Volo.Abp.AspNetCore.Serilog" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.Autofac" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.BackgroundWorkers.Quartz" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.Core" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.Ddd.Application" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.Ddd.Domain" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.EntityFrameworkCore" Version="6.0.1" />
+    <PackageVersion Include="Volo.Abp.EntityFrameworkCore.SqlServer" Version="6.0.1" />
+    <PackageVersion Include="Serilog.Sinks.Async" Version="1.5.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.0" />
+  </ItemGroup>
+</Project>
