@@ -4,13 +4,14 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 using Volo.Abp;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 using Volo.Abp.Quartz;
 
 namespace BackJob.Worker
 {
     [DependsOn(
-        typeof(AbpQuartzModule)
+        typeof(AbpBackgroundWorkersModule)
     )]
     public class BackJobWorkerModule : AbpModule
     {
