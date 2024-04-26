@@ -11,7 +11,6 @@ namespace BackJob.Worker.Workers;
 
 
 [DisallowConcurrentExecution]
-[UnitOfWork]
 public class DemoJob : IJob , ITransientDependency
 {
     private readonly ILogger<DemoJob> _logger;
@@ -25,17 +24,39 @@ public class DemoJob : IJob , ITransientDependency
         _uoOfWorkManager = uoOfWorkManager;
     }
 
+    #region this unitofwork attribute is not working
+    ///// <inheritdoc />
+    //[UnitOfWork]
+    //public  async Task Execute(IJobExecutionContext context)
+    //{
+    //    ValueContext.CurrentId.Value = "1";
+
+    //    var query = await _repository.GetQueryableAsync();
+
+    //    var list = await query.Where(x => x.Id > 0).ToListAsync(); // this will throw exception dbcontext disposed
+
+    //    _logger.LogInformation("DemoJob is running. data is {@list}", list);
+    //}
+    #endregion
+
+
+    #region this is working
+
     /// <inheritdoc />
     public  async Task Execute(IJobExecutionContext context)
     {
-        ValueContext.CurrentId.Value = "1";
+        using (_uoOfWorkManager.Begin(requiresNew:true)) // this will work
+        {
+            ValueContext.CurrentId.Value = "1";
 
-        var query = await _repository.GetQueryableAsync();
+            var query = await _repository.GetQueryableAsync();
 
-        var list = await query.Where(x => x.Id > 0).ToListAsync();
+            var list = await query.Where(x => x.Id > 0).ToListAsync(); // 
 
-        _logger.LogInformation("DemoJob is running. data is {@list}", list);
+            _logger.LogInformation("DemoJob is running. data is {@list}", list);
+        }
     }
+
+    #endregion
+    
 }
-
-

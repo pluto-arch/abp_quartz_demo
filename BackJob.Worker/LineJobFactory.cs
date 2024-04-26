@@ -3,15 +3,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging;
 using Quartz.Spi;
 using Quartz;
+using System.Collections.Concurrent;
+using static Quartz.Logging.OperationName;
 
 namespace BackJob.Worker;
 
 public class LineJobFactory : IJobFactory
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _serviceProvider;
     private readonly ILogger<LineJobFactory> _logger;
-
-    public LineJobFactory(IServiceProvider serviceProvider, ILogger<LineJobFactory> logger = null)
+    protected readonly ConcurrentDictionary<IJob, IServiceScope> _scopes = new ConcurrentDictionary<IJob, IServiceScope>();
+    public LineJobFactory(IServiceScopeFactory serviceProvider, ILogger<LineJobFactory> logger = null)
     {
         _serviceProvider = serviceProvider;
         _logger = logger ?? NullLogger<LineJobFactory>.Instance;
@@ -19,26 +21,33 @@ public class LineJobFactory : IJobFactory
 
     public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
     {
+        var scope = _serviceProvider.CreateScope();
+        IJob job;
+
         try
         {
-            var jobDetail = bundle.JobDetail;
-            var jobType = jobDetail.JobType;
-            if (_serviceProvider.GetRequiredService(jobType) is not IJob jobToExecute)
-            {
-                _logger.LogError("Problem instantiating class '{JobClassName}'", bundle.JobDetail.JobType.FullName);
-                throw new SchedulerException($"Problem instantiating class '{bundle.JobDetail.JobType.FullName}'");
-            }
-            return jobToExecute;
+            job = scope.ServiceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogError("Problem instantiating class '{JobClassName}'", bundle.JobDetail.JobType.FullName);
-            throw new SchedulerException($"Problem instantiating class '{bundle.JobDetail.JobType.FullName}'", ex);
+            scope.Dispose();
+            throw;
         }
+
+        if (!_scopes.TryAdd(job, scope))
+        {
+            scope.Dispose();
+            throw new Exception("Failed to track DI scope");
+        }
+        return job;
     }
 
     public void ReturnJob(IJob job)
     {
+        if (_scopes.TryRemove(job, out var scope))
+        {
+            scope.Dispose();
+        }
         (job as IDisposable)?.Dispose();
     }
 }
