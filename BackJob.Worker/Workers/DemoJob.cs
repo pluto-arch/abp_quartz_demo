@@ -13,7 +13,6 @@ namespace BackJob.Worker.Workers;
 
 
 [DisallowConcurrentExecution]
-[UnitOfWork]
 public class DemoJob :  IJob ,ITransientDependency
 {
     private readonly ILogger<DemoJob> _logger;
@@ -30,17 +29,18 @@ public class DemoJob :  IJob ,ITransientDependency
     }
 
     #region this unitofwork attribute is not working
-    ///// <inheritdoc />
-    //public  async Task Execute(IJobExecutionContext context)
-    //{
-    //    ValueContext.CurrentId.Value = "1";
+    /// <inheritdoc />
+    [UnitOfWork]
+    public virtual async Task Execute(IJobExecutionContext context)
+    {
+        ValueContext.CurrentId.Value = "1";
 
-    //    var query = await _repository.GetQueryableAsync(); // abp repository. Based on the abp documentation, each method in the repository is considered as a uow. I don't understand why it is designed this way.
+        var query = await _repository.GetQueryableAsync(); // abp repository. Based on the abp documentation, each method in the repository is considered as a uow. I don't understand why it is designed this way.
 
-    //    var list = await query.Where(x => x.Id > 0).ToListAsync(); // this will throw exception dbcontext disposed
+        var list = await query.Where(x => x.Id > 0).ToListAsync(); // this will throw exception dbcontext disposed
 
-    //    _logger.LogInformation("DemoJob is running. data is {@list}", list);
-    //}
+        _logger.LogInformation("DemoJob is running. data is {@list}", list);
+    }
     #endregion
 
 
@@ -66,15 +66,15 @@ public class DemoJob :  IJob ,ITransientDependency
 
     #region this is working using dbcontext
 
-    /// <inheritdoc />
-    public async Task Execute(IJobExecutionContext context)
-    {
-        ValueContext.CurrentId.Value = "1";
+    ///// <inheritdoc />
+    //public async Task Execute(IJobExecutionContext context)
+    //{
+    //    ValueContext.CurrentId.Value = "1";
 
-        var list = await _dbContext.Product.Where(x => x.Id > 0).ToListAsync(); // worked
+    //    var list = await _dbContext.Product.Where(x => x.Id > 0).ToListAsync(); // worked
 
-        _logger.LogInformation("DemoJob is running. data is {@list}", list);
-    }
+    //    _logger.LogInformation("DemoJob is running. data is {@list}", list);
+    //}
 
     #endregion
 }
