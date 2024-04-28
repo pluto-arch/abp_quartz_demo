@@ -29,11 +29,8 @@ public class DemoJob :  IJob ,ITransientDependency
     public virtual async Task Execute(IJobExecutionContext context)
     {
         ValueContext.CurrentId.Value = "1";
-
-        var query = await _repository.GetQueryableAsync(); // abp repository. Based on the abp documentation, each method in the repository is considered as a uow. I don't understand why it is designed this way.
-
-        var list = await query.Where(x => x.Id > 0).ToListAsync(); // this will throw exception dbcontext disposed
-
+        var query = await _repository.GetQueryableAsync(); 
+        var list = await query.Where(x => x.Id > 0).ToListAsync(); 
         _logger.LogInformation("DemoJob is running. data is {@list}", list);
     }
 }
