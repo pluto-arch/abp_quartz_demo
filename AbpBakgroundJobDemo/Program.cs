@@ -33,6 +33,7 @@ namespace AbpBakgroundJobDemo
                 });
                  builder
                     .UseAutofac()
+                    .UseConsoleLifetime()
                     .UseSerilog();
 
                  await builder.Build().RunAsync();
